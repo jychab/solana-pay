@@ -4,9 +4,10 @@ import { buildStyles, CircularProgressbar } from 'react-circular-progressbar';
 import 'react-circular-progressbar/dist/styles.css';
 import { PaymentStatus, usePayment } from '../../hooks/usePayment';
 import css from './Progress.module.css';
+import Image from 'next/image';
 
 export const Progress: FC = () => {
-    const { status, progress } = usePayment();
+    const { status, progress, reward } = usePayment();
     const [value, text] = useMemo(() => {
         switch (status) {
             case PaymentStatus.Finalized:
@@ -31,9 +32,21 @@ export const Progress: FC = () => {
     );
 
     return (
-        <div className={css.root}>
-            <CircularProgressbar maxValue={1} value={value} styles={styles} />
-            <div className={css.text}>{text}</div>
-        </div>
+        <>
+            <div className={css.root}>
+                <CircularProgressbar maxValue={1} value={value} styles={styles} />
+                <div className={css.text}>{text}</div>
+            </div>
+            {reward && (
+                <div id="myModal" className={css.modal}>
+                    <div className={css.modalContent}>
+                        <h2>You Won...</h2>
+                        <Image src={reward.image} height={200} width={200} alt={''} />
+                        <h3>{reward.name}</h3>
+                        <span>{reward.description}</span>
+                    </div>
+                </div>
+            )}
+        </>
     );
 };

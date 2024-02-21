@@ -12,6 +12,14 @@ export enum PaymentStatus {
     Finalized = 'Finalized',
 }
 
+export interface Reward {
+    name: string;
+    symbol: string;
+    description: string;
+    image: string;
+    receiverAddress: string;
+}
+
 export interface PaymentContextState {
     amount: BigNumber | undefined;
     setAmount(amount: BigNumber | undefined): void;
@@ -25,6 +33,8 @@ export interface PaymentContextState {
     url: URL;
     reset(): void;
     generate(): void;
+    reward: Reward | undefined;
+    setReward(reward: Reward | undefined): void;
 }
 
 export const PaymentContext = createContext<PaymentContextState>({} as PaymentContextState);

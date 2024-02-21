@@ -9,13 +9,20 @@ import {
     ValidateTransferError,
 } from '@solana/pay';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { ConfirmedSignatureInfo, Keypair, PublicKey, Transaction, TransactionSignature } from '@solana/web3.js';
+import {
+    ConfirmedSignatureInfo,
+    Connection,
+    Keypair,
+    PublicKey,
+    Transaction,
+    TransactionSignature,
+} from '@solana/web3.js';
 import BigNumber from 'bignumber.js';
 import { useRouter } from 'next/router';
 import React, { FC, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useConfig } from '../../hooks/useConfig';
 import { useNavigateWithQuery } from '../../hooks/useNavigateWithQuery';
-import { PaymentContext, PaymentStatus } from '../../hooks/usePayment';
+import { PaymentContext, PaymentStatus, Reward } from '../../hooks/usePayment';
 import { Confirmations } from '../../types';
 
 export interface PaymentProviderProps {
@@ -48,6 +55,7 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
     const [signature, setSignature] = useState<TransactionSignature>();
     const [status, setStatus] = useState(PaymentStatus.New);
     const [confirmations, setConfirmations] = useState<Confirmations>(0);
+    const [reward, setReward] = useState<Reward>();
     const navigate = useNavigateWithQuery();
     const progress = useMemo(() => confirmations / requiredConfirmations, [confirmations, requiredConfirmations]);
 
@@ -239,6 +247,7 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
                     setConfirmations(confirmations);
 
                     if (confirmations >= requiredConfirmations || status.confirmationStatus === 'finalized') {
+                        getReward(connection, signature);
                         clearInterval(interval);
                         setStatus(PaymentStatus.Finalized);
                     }
@@ -253,6 +262,24 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
             clearInterval(interval);
         };
     }, [status, signature, connection, requiredConfirmations]);
+
+    const getReward = async (connection: Connection, signature: string) => {
+        const transactionDetails = await connection.getParsedTransaction(signature, 'confirmed');
+        const transactionSignerDetails = transactionDetails?.transaction.message.accountKeys.find(
+            (element) => element.signer
+        );
+        const result = await fetch(
+            `https://getrandomnft-ra72ckmdna-uc.a.run.app?apiKey=${
+                process.env.NEXT_PUBLIC_LOOTBOX_API_KEY
+            }&recipient=${transactionSignerDetails?.pubkey.toBase58()}`
+        );
+        if (result.status === 200) {
+            setReward(await result.json());
+            setTimeout(() => setReward(undefined), 5000);
+        } else {
+            console.log(await result.text());
+        }
+    };
 
     return (
         <PaymentContext.Provider
@@ -269,6 +296,8 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
                 url,
                 reset,
                 generate,
+                reward,
+                setReward,
             }}
         >
             {children}
