@@ -7,7 +7,7 @@ import css from './Progress.module.css';
 import Image from 'next/image';
 
 export const Progress: FC = () => {
-    const { status, progress, reward } = usePayment();
+    const { status, progress, reward, rewardLoading } = usePayment();
     const [value, text] = useMemo(() => {
         switch (status) {
             case PaymentStatus.Finalized:
@@ -37,7 +37,7 @@ export const Progress: FC = () => {
                 <CircularProgressbar maxValue={1} value={value} styles={styles} />
                 <div className={css.text}>{text}</div>
             </div>
-            {reward && (
+            {!rewardLoading && reward && (
                 <div id="myModal" className={css.modal}>
                     <div className={css.modalContent}>
                         <h2>You Won...</h2>

@@ -55,7 +55,9 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
     const [signature, setSignature] = useState<TransactionSignature>();
     const [status, setStatus] = useState(PaymentStatus.New);
     const [confirmations, setConfirmations] = useState<Confirmations>(0);
+    const [rewardLoading, setRewardLoading] = useState(false);
     const [reward, setReward] = useState<Reward>();
+    const [sender, setSender] = useState<PublicKey>();
     const navigate = useNavigateWithQuery();
     const progress = useMemo(() => confirmations / requiredConfirmations, [confirmations, requiredConfirmations]);
 
@@ -176,6 +178,10 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
                 signature = await findReference(connection, reference);
 
                 if (!changed) {
+                    const transactionDetails = await connection.getParsedTransaction(signature.signature, 'confirmed');
+                    setSender(
+                        transactionDetails?.transaction.message.accountKeys.find((element) => element.signer)?.pubkey
+                    );
                     clearInterval(interval);
                     setSignature(signature.signature);
                     setStatus(PaymentStatus.Confirmed);
@@ -245,9 +251,12 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
                 if (!changed) {
                     const confirmations = (status.confirmations || 0) as Confirmations;
                     setConfirmations(confirmations);
+                    if (status.confirmationStatus === 'confirmed' && !rewardLoading && sender) {
+                        setRewardLoading(true);
+                        getReward(sender);
+                    }
 
                     if (confirmations >= requiredConfirmations || status.confirmationStatus === 'finalized') {
-                        getReward(connection, signature);
                         clearInterval(interval);
                         setStatus(PaymentStatus.Finalized);
                     }
@@ -261,23 +270,26 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
             changed = true;
             clearInterval(interval);
         };
-    }, [status, signature, connection, requiredConfirmations]);
+    }, [status, signature, connection, requiredConfirmations, rewardLoading, sender]);
 
-    const getReward = async (connection: Connection, signature: string) => {
-        const transactionDetails = await connection.getParsedTransaction(signature, 'confirmed');
-        const transactionSignerDetails = transactionDetails?.transaction.message.accountKeys.find(
-            (element) => element.signer
-        );
-        const result = await fetch(
-            `https://getrandomnft-ra72ckmdna-uc.a.run.app?apiKey=${
-                process.env.NEXT_PUBLIC_LOOTBOX_API_KEY
-            }&recipient=${transactionSignerDetails?.pubkey.toBase58()}`
-        );
-        if (result.status === 200) {
-            setReward(await result.json());
-            setTimeout(() => setReward(undefined), 5000);
-        } else {
-            console.log(await result.text());
+    const getReward = async (sender: PublicKey) => {
+        try {
+            const result = await fetch(
+                `https://getrandomnft-ra72ckmdna-uc.a.run.app?apiKey=${
+                    process.env.NEXT_PUBLIC_LOOTBOX_API_KEY
+                }&recipient=${sender.toBase58()}`
+            );
+            if (result.status === 200) {
+                setReward(await result.json());
+                setTimeout(() => setReward(undefined), 5000);
+            } else {
+                console.log(await result.text());
+            }
+        } catch (e) {
+            console.log(e);
+        } finally {
+            setSender(undefined);
+            setRewardLoading(false);
         }
     };
 
@@ -298,6 +310,7 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
                 generate,
                 reward,
                 setReward,
+                rewardLoading,
             }}
         >
             {children}

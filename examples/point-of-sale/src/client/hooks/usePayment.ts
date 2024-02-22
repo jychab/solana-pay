@@ -35,6 +35,7 @@ export interface PaymentContextState {
     generate(): void;
     reward: Reward | undefined;
     setReward(reward: Reward | undefined): void;
+    rewardLoading: boolean;
 }
 
 export const PaymentContext = createContext<PaymentContextState>({} as PaymentContextState);
