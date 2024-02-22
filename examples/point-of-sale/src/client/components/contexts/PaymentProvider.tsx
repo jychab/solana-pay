@@ -281,15 +281,17 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
             );
             if (result.status === 200) {
                 setReward(await result.json());
-                setTimeout(() => setReward(undefined), 5000);
             } else {
                 console.log(await result.text());
             }
         } catch (e) {
             console.log(e);
         } finally {
-            setSender(undefined);
-            setRewardLoading(false);
+            setTimeout(() => {
+                setSender(undefined);
+                setRewardLoading(false);
+                setReward(undefined);
+            }, 5000);
         }
     };
 

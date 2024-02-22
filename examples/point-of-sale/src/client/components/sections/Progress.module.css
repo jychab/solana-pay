@@ -19,25 +19,44 @@
     width: 100%;
     height: 100%;
     background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-    z-index: 50;
-    overflow: auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 999; /* Ensure modal appears above other content */
+    overflow: auto;
 }
 
 .modalContent {
-    position: absolute;
+    position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
     background-color: #3f3838;
     padding: 20px;
     border-radius: 10px;
-    max-width: 250px;
-    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transform: translate(-50%, -100%);
+    width: 300px;
+    max-width: 90%;
+    opacity: 0; /* Initially hidden */
+    transition: transform 0.5s ease, opacity 0.5s ease; /* Smooth transition */
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    display: flex;
 }
 
+.show {
+    transform: translate(-50%, -50%);
+    opacity: 1; /* Fully visible when 'show' class is added */
+}
+
+.modalContent .next-image {
+    display: block;
+    margin: 0 auto; /* Center horizontally */
+    border-radius: 5px;
+    max-width: 100%;
+    max-height: 200px; /* Set maximum height */
+}
 /* Style for the heading */
 .modalContent h2 {
     font-size: 24px;
@@ -52,7 +71,7 @@
     text-wrap: wrap;
 }
 
-.modalContent span {
+.modalContent p {
     display: block;
     font-size: 16px;
     text-align: start;
@@ -61,13 +80,5 @@
     overflow: hidden;
     text-overflow: ellipsis;
     margin-top: 20px;
-    margin-bottom: 20px;
-}
-
-.modalContent .next-image {
-    display: block;
-    margin: 0 auto; /* Center horizontally */
-    border-radius: 5px;
-    max-width: 100%;
-    max-height: 200px; /* Set maximum height */
+    padding-bottom: 10px;
 }

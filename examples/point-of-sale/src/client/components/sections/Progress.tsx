@@ -37,13 +37,18 @@ export const Progress: FC = () => {
                 <CircularProgressbar maxValue={1} value={value} styles={styles} />
                 <div className={css.text}>{text}</div>
             </div>
-            {!rewardLoading && reward && (
-                <div id="myModal" className={css.modal}>
-                    <div className={css.modalContent}>
-                        <h2>You Won...</h2>
-                        <Image src={reward.image} height={200} width={200} alt={''} />
-                        <h3>{reward.name}</h3>
-                        <span>{reward.description}</span>
+
+            {rewardLoading && (
+                <div className={css.modal}>
+                    <div className={!reward ? css.modalContent : `${css.modalContent} ${css.show}`}>
+                        {reward && (
+                            <>
+                                <h2>You Won...</h2>
+                                <Image src={reward.image} alt={reward.name} width={200} height={200} />
+                                <h3>{reward.name}</h3>
+                                <p>{reward.description}</p>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
