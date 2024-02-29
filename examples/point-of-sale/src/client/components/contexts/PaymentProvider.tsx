@@ -275,7 +275,7 @@ export const PaymentProvider: FC<PaymentProviderProps> = ({ children }) => {
     const getReward = async (sender: PublicKey) => {
         try {
             const result = await fetch(
-                `https://getrandomnft-ra72ckmdna-uc.a.run.app?apiKey=${
+                `https://prizepool.web.app/getprize?apiKey=${
                     process.env.NEXT_PUBLIC_LOOTBOX_API_KEY
                 }&recipient=${sender.toBase58()}`
             );
